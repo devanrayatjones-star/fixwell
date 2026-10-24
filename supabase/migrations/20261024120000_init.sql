@@ -6,7 +6,7 @@
 -- All reads and writes go through the website's server code, which checks
 -- who is asking before using the secret key.
 
-create extension if not exists btree_gist;
+create extension if not exists btree_gist with schema extensions;
 
 -- ---------------------------------------------------------------------------
 -- Tradespeople
@@ -204,6 +204,9 @@ alter table public.reviews enable row level security;
 
 revoke all on public.tradespeople, public.services, public.time_off, public.bookings, public.reviews
   from anon, authenticated;
+-- The website's server uses the secret key (service_role role).
+grant all on public.tradespeople, public.services, public.time_off, public.bookings, public.reviews
+  to service_role;
 revoke execute on function public.anonymise_old_bookings(interval) from public, anon, authenticated;
 grant execute on function public.anonymise_old_bookings(interval) to service_role;
 
