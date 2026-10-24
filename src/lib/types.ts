@@ -47,7 +47,6 @@ export type Service = {
 export type Booking = {
   id: string;
   reference: string;
-  access_token_hash: string;
   tradesperson_id: string;
   service_id: string | null;
   service_name: string;

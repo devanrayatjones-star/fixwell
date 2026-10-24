@@ -3,13 +3,15 @@ import "server-only";
 import { CANCELLATION_CUTOFF_HOURS, SITE_NAME, SITE_URL } from "./config";
 import { button, layout, p, rows, small } from "./email";
 import { formatHours, formatPence, formatSlot } from "./format";
+import { bookingToken } from "./tokens";
 import { tradeInfo } from "./trades";
 import type { Booking, Tradesperson } from "./types";
 
 type TP = Pick<Tradesperson, "business_name" | "phone" | "email" | "trade" | "is_test" | "contact_name">;
 
-export function bookingLink(reference: string, token: string) {
-  return `${SITE_URL}/booking/${reference}?token=${token}`;
+/** The customer's private "view or cancel" link for a booking. */
+export function bookingLink(b: Pick<Booking, "id" | "reference">) {
+  return `${SITE_URL}/booking/${b.reference}?token=${bookingToken(b.id)}`;
 }
 
 function testPrefix(tp: Pick<Tradesperson, "is_test">) {
@@ -40,21 +42,21 @@ function customerRows(b: Booking) {
 
 // ---- Customer emails --------------------------------------------------------
 
-export function bookingRequestedCustomer(b: Booking, tp: TP, token: string) {
+export function bookingRequestedCustomer(b: Booking, tp: TP) {
   return layout(`${testPrefix(tp)}Booking request ${b.reference} received`, "We've sent your booking request", [
     p(`Hi ${b.customer_name}, thanks for booking with ${SITE_NAME}. ${tp.business_name} will confirm your appointment shortly, and we'll email you as soon as they do.`),
     jobRows(b, tp),
-    button("View or cancel your booking", bookingLink(b.reference, token)),
+    button("View or cancel your booking", bookingLink(b)),
     small(`You can cancel online free of charge up to ${CANCELLATION_CUTOFF_HOURS} hours before the appointment. Keep this email: the link above is how you manage your booking.`),
   ]);
 }
 
-export function bookingAcceptedCustomer(b: Booking, tp: TP, token: string) {
+export function bookingAcceptedCustomer(b: Booking, tp: TP) {
   return layout(`${testPrefix(tp)}Confirmed: ${b.reference} on ${formatSlot(b.starts_at, b.ends_at)}`, "Your booking is confirmed", [
     p(`Good news, ${b.customer_name}. ${tp.business_name} has confirmed your booking.`),
     jobRows(b, tp),
     rows([["Their phone", tp.phone]]),
-    button("View or cancel your booking", bookingLink(b.reference, token)),
+    button("View or cancel your booking", bookingLink(b)),
   ]);
 }
 
@@ -90,10 +92,10 @@ export function bookingCancelledCustomer(b: Booking, tp: TP, byCustomer: boolean
   );
 }
 
-export function reviewRequestCustomer(b: Booking, tp: TP, token: string) {
+export function reviewRequestCustomer(b: Booking, tp: TP) {
   return layout(`${testPrefix(tp)}How did ${tp.business_name} do?`, "How did it go?", [
     p(`Hi ${b.customer_name}, ${tp.business_name} has marked your job (${b.service_name}) as complete. Would you leave a quick review? It helps other people in your area choose with confidence.`),
-    button("Leave a review", `${bookingLink(b.reference, token)}&review=1`),
+    button("Leave a review", `${bookingLink(b)}&review=1`),
   ]);
 }
 
@@ -120,6 +122,7 @@ export function confirmAccount(name: string, link: string) {
   return layout(`Confirm your ${SITE_NAME} email address`, "Confirm your email address", [
     p(`Hi ${name}, thanks for applying to join ${SITE_NAME}. Please confirm your email address:`),
     button("Confirm email", link),
+    p(`We check every tradesperson's accreditations and insurance before they appear on ${SITE_NAME}, usually within a couple of working days. We'll email you as soon as you're live. Meanwhile you can log in to add photos of your work.`),
     small("If you didn't apply, you can ignore this email."),
   ]);
 }
@@ -129,14 +132,6 @@ export function passwordReset(link: string) {
     p("Someone (hopefully you) asked to reset your password. This link works once and expires in an hour."),
     button("Choose a new password", link),
     small("If you didn't ask for this, you can ignore this email; your password won't change."),
-  ]);
-}
-
-export function applicationReceived(tp: TP) {
-  return layout(`We've received your ${SITE_NAME} application`, "Thanks for applying", [
-    p(`Hi ${tp.contact_name}, we've received your application for ${tp.business_name}. We check every tradesperson's accreditations and insurance before they appear on ${SITE_NAME}, which usually takes a couple of working days. We'll email you as soon as you're live.`),
-    p("Meanwhile you can log in to set your working hours and add photos of your work."),
-    button("Go to your dashboard", `${SITE_URL}/dashboard`),
   ]);
 }
 

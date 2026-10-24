@@ -13,7 +13,7 @@ import { fieldErrors, type FormState } from "@/lib/validation";
 
 async function loadBookingWithToken(reference: string, token: string) {
   const { data } = await db().from("bookings").select("*, tradespeople(*)").eq("reference", reference).maybeSingle();
-  if (!data || !tokenMatches(token, data.access_token_hash)) return null;
+  if (!data || !tokenMatches(token, data.id)) return null;
   const { tradespeople, ...booking } = data;
   return { booking: booking as Booking, tp: tradespeople as Tradesperson };
 }

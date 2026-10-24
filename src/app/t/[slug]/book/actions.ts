@@ -11,7 +11,7 @@ import { estimatePence } from "@/lib/format";
 import { coversDistrict, outwardCode, postcodeExists } from "@/lib/postcode";
 import { db } from "@/lib/supabase/admin";
 import { londonDate, addDays } from "@/lib/time";
-import { hashToken, newAccessToken, newBookingReference } from "@/lib/tokens";
+import { bookingToken, newBookingReference } from "@/lib/tokens";
 import type { Booking, Tradesperson } from "@/lib/types";
 import { emailField, fieldErrors, type FormState, normaliseVehicleReg, phoneField, postcodeField } from "@/lib/validation";
 
@@ -83,15 +83,12 @@ export async function createBooking(_prev: BookingFormState, formData: FormData)
   if (Object.keys(errors).length) return { message: "Please check the highlighted fields.", errors };
 
   const endsAt = new Date(startsAt.getTime() + jobDurationMinutes(Number(service.estimated_hours)) * 60_000);
-  const token = newAccessToken();
-
   let booking: Booking | null = null;
   for (let attempt = 0; attempt < 5 && !booking; attempt++) {
     const { data, error } = await db()
       .from("bookings")
       .insert({
         reference: newBookingReference(),
-        access_token_hash: hashToken(token),
         tradesperson_id: tp.id,
         service_id: service.id,
         service_name: service.name,
@@ -126,11 +123,12 @@ export async function createBooking(_prev: BookingFormState, formData: FormData)
     }
   }
   if (!booking) return { message: "Something went wrong saving your booking. Please try again." };
+  const token = bookingToken(booking.id);
 
   // Test tradespeople have made-up email addresses, so their notifications go to you instead.
   const tradespersonInbox = tp.is_test ? notifyEmail() : tp.email;
   await Promise.all([
-    sendEmail(booking.customer_email, bookingRequestedCustomer(booking, tp, token), tp.is_test ? undefined : tp.email),
+    sendEmail(booking.customer_email, bookingRequestedCustomer(booking, tp), tp.is_test ? undefined : tp.email),
     sendEmail(tradespersonInbox, bookingNewTradesperson(booking, tp), booking.customer_email ?? undefined),
     tp.is_test ? Promise.resolve(true) : sendEmail(notifyEmail(), bookingCopyAdmin(booking, tp)),
   ]);

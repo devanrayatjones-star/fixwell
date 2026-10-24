@@ -1,19 +1,27 @@
 import "server-only";
-import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
+import { createHmac, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 
-/** Secret for the customer's "view or cancel" link. Only its hash is stored. */
-export function newAccessToken(): string {
-  return randomBytes(24).toString("base64url");
+function linkSecret(): string {
+  const secret = process.env.BOOKING_LINK_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error("Missing BOOKING_LINK_SECRET (at least 16 random characters). See .env.example and the README.");
+  }
+  return secret;
 }
 
-export function hashToken(token: string): string {
-  return createHash("sha256").update(token).digest("hex");
+/**
+ * The secret in a customer's "view or cancel" link. It's worked out from the
+ * booking ID and BOOKING_LINK_SECRET, so nothing extra is stored and any email
+ * can include the link. Without the secret, nobody can guess it.
+ */
+export function bookingToken(bookingId: string): string {
+  return createHmac("sha256", linkSecret()).update(`booking:${bookingId}`).digest("base64url").slice(0, 32);
 }
 
-export function tokenMatches(token: string | undefined | null, hash: string): boolean {
+export function tokenMatches(token: string | undefined | null, bookingId: string): boolean {
   if (!token) return false;
-  const a = Buffer.from(hashToken(token), "hex");
-  const b = Buffer.from(hash, "hex");
+  const a = Buffer.from(token);
+  const b = Buffer.from(bookingToken(bookingId));
   return a.length === b.length && timingSafeEqual(a, b);
 }
 

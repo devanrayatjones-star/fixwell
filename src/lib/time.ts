@@ -57,3 +57,11 @@ export function londonDayRange(date: string): { start: Date; end: Date } {
 export function hoursUntil(iso: string): number {
   return (new Date(iso).getTime() - Date.now()) / 3_600_000;
 }
+
+export function isPast(iso: string): boolean {
+  return new Date(iso).getTime() <= Date.now();
+}
+
+export function isoDaysAgo(days: number): string {
+  return new Date(Date.now() - days * 86_400_000).toISOString();
+}

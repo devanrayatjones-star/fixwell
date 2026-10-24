@@ -28,7 +28,7 @@ export default async function BookingPage({ params, searchParams }: PageProps<"/
 
   const { data } = await db().from("bookings").select("*, tradespeople(business_name, slug, phone, trade, is_test)").eq("reference", reference.toUpperCase()).maybeSingle();
 
-  if (!data || !tokenMatches(token, data.access_token_hash)) {
+  if (!data || !tokenMatches(token, data.id)) {
     return (
       <div className="container-page max-w-xl py-16 text-center">
         <h1 className="text-2xl font-bold">Booking not found</h1>

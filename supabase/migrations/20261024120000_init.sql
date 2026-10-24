@@ -83,8 +83,6 @@ create table public.time_off (
 create table public.bookings (
   id uuid primary key default gen_random_uuid(),
   reference text not null unique,
-  -- SHA-256 of the secret in the customer's email link (we never store the link itself)
-  access_token_hash text not null,
   tradesperson_id uuid not null references public.tradespeople (id) on delete restrict,
   service_id uuid references public.services (id) on delete set null,
 
@@ -172,18 +170,6 @@ create trigger bookings_updated_at before update on public.bookings
 -- Housekeeping jobs (called daily by /api/cron/daily)
 -- ---------------------------------------------------------------------------
 
--- Pending requests the tradesperson never answered before the start time.
-create function public.expire_stale_bookings() returns integer
-language sql security definer set search_path = public as $$
-  with updated as (
-    update public.bookings
-       set status = 'expired'
-     where status = 'pending' and starts_at < now()
-    returning 1
-  )
-  select count(*)::integer from updated;
-$$;
-
 -- Clears customer personal details once a booking is older than the
 -- retention period. Keeps the postcode district for anonymous stats.
 create function public.anonymise_old_bookings(retention interval default interval '12 months')
@@ -218,9 +204,7 @@ alter table public.reviews enable row level security;
 
 revoke all on public.tradespeople, public.services, public.time_off, public.bookings, public.reviews
   from anon, authenticated;
-revoke execute on function public.expire_stale_bookings() from public, anon, authenticated;
 revoke execute on function public.anonymise_old_bookings(interval) from public, anon, authenticated;
-grant execute on function public.expire_stale_bookings() to service_role;
 grant execute on function public.anonymise_old_bookings(interval) to service_role;
 
 -- ---------------------------------------------------------------------------
