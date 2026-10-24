@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef4fb;
+  --color-brand-100: #d6e4f4;
+  --color-brand-600: #1d4f8a;
+  --color-brand-700: #163e6e;
+  --color-brand-800: #10325a;
+  --color-brand-900: #0f2a4a;
+  --color-accent-50: #fff4ed;
+  --color-accent-100: #ffe4d1;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea580c;
+  --color-accent-700: #c2410c;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6;
+}
+
+@utility card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-primary {
+  @apply btn bg-accent-600 text-white hover:bg-accent-700;
+}
+
+@utility btn-secondary {
+  @apply btn border border-slate-300 bg-white text-slate-800 hover:bg-slate-50;
+}
+
+@utility btn-dark {
+  @apply btn bg-brand-900 text-white hover:bg-brand-800;
+}
+
+@utility btn-danger {
+  @apply btn border border-red-200 bg-white text-red-700 hover:bg-red-50;
+}
+
+@utility btn-sm {
+  @apply min-h-9 px-3 py-1.5 text-sm;
+}
+
+@utility label {
+  @apply mb-1.5 block text-sm font-medium text-slate-700;
+}
+
+@utility input {
+  @apply block min-h-11 w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base text-slate-900 placeholder:text-slate-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none;
+}
+
+@utility input-error {
+  @apply border-red-400 focus:border-red-500 focus:ring-red-100;
+}
+
+@utility field-error {
+  @apply mt-1 text-sm text-red-600;
+}
+
+@utility hint {
+  @apply mt-1 text-sm text-slate-500;
+}
+
+@utility badge {
+  @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold;
+}
+
+@utility fill-in {
+  @apply rounded bg-yellow-100 px-1 font-medium text-yellow-900;
+}
+
+@utility prose-legal {
+  & h2 {
+    @apply mt-8 mb-3 text-xl font-bold text-slate-900;
+  }
+  & h3 {
+    @apply mt-6 mb-2 text-lg font-semibold text-slate-900;
+  }
+  & p,
+  & li {
+    @apply mb-3 leading-relaxed text-slate-700;
+  }
+  & ul {
+    @apply mb-4 list-disc pl-6;
+  }
+}
